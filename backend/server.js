@@ -4,6 +4,8 @@ import mongoose from "mongoose"
 import cors from "cors"
 import dotenv from "dotenv"
 
+import ChatBot from "./models/ChatBot.js"
+
 dotenv.config()
 
 const app = express()
@@ -49,6 +51,30 @@ app.get("/api/calculations/:sessionId", async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
+
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { sessionId, role, message } = req.body
+    const chat = new ChatBot({ sessionId, role, message })
+    await chat.save()
+    res.status(201).json(chat)
+  } catch (err) {
+    res.status(400).json({ error: err.message })
+  }
+})
+
+app.get("/api/chat/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params
+    const chats = await ChatBot.find({ sessionId })
+      .sort({ createdAt: -1 })
+      .limit(10)
+    res.json(chats.reverse()) // return oldest → newest
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 
 // Start server
 const PORT = process.env.PORT || 5000
