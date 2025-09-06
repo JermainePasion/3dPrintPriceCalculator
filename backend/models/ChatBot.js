@@ -1,9 +1,15 @@
 import mongoose from "mongoose"
 
-const chatBotSchema = new mongoose.Schema({
-  sessionId: { type: String, required: true },   // link to anonymous user session
+const chatSchema = new mongoose.Schema({
+  sessionId: { type: String, required: true },
   role: { type: String, enum: ["user", "bot"], required: true },
-  message: { type: String, required: true }
+  message: String,
+  expiresAt: { 
+    type: Date, 
+    default: () => new Date(Date.now() + 2 * 60 * 60 * 1000) // 2 hours
+  }
 }, { timestamps: true })
 
-export default mongoose.model("ChatBot", chatBotSchema)
+chatSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+
+export default mongoose.model("ChatBot", chatSchema)
