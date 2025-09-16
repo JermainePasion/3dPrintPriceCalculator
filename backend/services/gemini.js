@@ -1,15 +1,14 @@
-// services/gemini.js
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import dotenv from "dotenv"
 
 dotenv.config()
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-const flashLiteModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" })
+const flashLiteModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
-// --- Simple rate limiting (per server instance) ---
+
 let lastCall = 0
-const MIN_DELAY = 2000 // 2s between calls
+const MIN_DELAY = 2000 
 
 export async function askGemini(message, calculations = [], chats = []) {
   // 🚦 Rate limiting
@@ -20,7 +19,7 @@ export async function askGemini(message, calculations = [], chats = []) {
   }
   lastCall = now
 
-  // --- Keep prompt minimal & business-focused ---
+
   let context = `
 You are "PrintMate", a chatbot assistant for small Filipino business owners 
 who use 3D printing to sell products on Shopee/Lazada/Facebook Marketplace.
@@ -37,17 +36,18 @@ Use that as a reference if asked about electricity costs.
   // Only include last 3 calculations
   if (calculations.length > 0) {
     context += "\nRecent calculations:\n"
-    calculations.slice(-3).forEach((c, i) => {
+    calculations.slice(-10).forEach((c, i) => {
+      const timeStr = `${c.printHours || 0}h ${c.printMinutes || 0}m`
       context += `#${i + 1}:
-- Product: ${c.product}
-- Material: ${c.material}
-- Weight: ${c.weightGrams}g
-- Filament price: ₱${c.pricePerSpool} per spool (1kg)
-- Print time: ${c.printTimeHours}h
-- Electricity cost: ₱${c.electricityCost}
-- Markup: ${c.markupPercent}%
-- Final total cost: ₱${c.totalCost}\n\n`
-    })
+    - Product: ${c.product}
+    - Material: ${c.material}
+    - Weight: ${c.weightGrams}g
+    - Filament price: ₱${c.pricePerSpool} per spool (1kg)
+    - Print time: ${timeStr}
+    - Electricity cost: ₱${c.electricityCost}
+    - Markup: ${c.markupPercent}%
+    - Final total cost: ₱${c.totalCost}\n\n`
+      })
   }
 
   // Only include last 5 messages
