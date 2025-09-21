@@ -1,9 +1,45 @@
-import { useState } from 'react'
+// App.jsx
+import { useEffect, useState } from 'react'
 import { ReactTyped } from 'react-typed'
 import './index.css'
-import Form from './components/Form'
+import axios from 'axios'
+import CardWithHistory from './components/Form'
 
 function App() {
+  const [sessionId, setSessionId] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+useEffect(() => {
+  const initSession = async () => {
+    let storedSession = localStorage.getItem("sessionId");
+
+    try {
+      if (!storedSession) {
+        // 🚀 Request a new session
+        const res = await axios.post("http://localhost:5000/api/session");
+        storedSession = res.data.sessionId;
+        localStorage.setItem("sessionId", storedSession);
+      }
+      console.log("Session ID:", storedSession); // ✅ Move it here
+      setSessionId(storedSession);
+    } catch (err) {
+      console.error("❌ Failed to initialize session:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  initSession();
+}, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-lg text-gray-600">Initializing session...</p>
+      </div>
+    )
+  }
+
 
   return (
     <>
@@ -21,7 +57,9 @@ function App() {
           />
         </h1>
       </div>
-      <Form/>
+      
+      {/* ✅ Pass sessionId into Form */}
+      <CardWithHistory sessionId={sessionId} />
     </>
   )
 }

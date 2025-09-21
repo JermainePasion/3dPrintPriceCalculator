@@ -2,7 +2,7 @@ import mongoose from "mongoose"
 
 const chatSchema = new mongoose.Schema({
   sessionId: { type: String, required: true },
-  role: { type: String, enum: ["user", "bot"], required: true },
+  role: { type: String, enum: ["user", "bot", "assistant"], required: true },
   message: String,
   expiresAt: { 
     type: Date, 

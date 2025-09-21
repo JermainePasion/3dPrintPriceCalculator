@@ -1,92 +1,189 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import axios from "axios";
 
-function Form() {
+export default function CardWithHistory({ sessionId, setSessionId }) {
   const [showHistory, setShowHistory] = useState(false);
-  const [markup, setMarkup] = useState(20); // default 20%
-  const [baseCost, setBaseCost] = useState(250); 
+  const [history, setHistory] = useState([]);
+  const [markup, setMarkup] = useState(20);
+  const [material, setMaterial] = useState("");
+  const [product, setProduct] = useState("");
+  const [pricePerSpool, setPricePerSpool] = useState(0);
+  const [weightGrams, setWeightGrams] = useState(0);
+  const [printHours, setPrintHours] = useState(0);
+  const [printMinutes, setPrintMinutes] = useState(0);
+  const [electricityCost, setElectricityCost] = useState(1.68);
 
+  const totalPrintTimeHours = printHours + printMinutes / 60;
+  const filamentCostPerGram = pricePerSpool / 1000;
+  const filamentCost = filamentCostPerGram * weightGrams;
+  const electricityTotal = electricityCost * totalPrintTimeHours;
+  const baseCost = filamentCost + electricityTotal;
   const total = (baseCost * (1 + markup / 100)).toFixed(2);
 
-  return (
-    <div className="flex justify-center items-center min-h-screen bg-[#F2EFE7] p-4">
-      {/* Wrapper for both cards */}
-      <div className="relative flex">
-        {/* Main card */}
-        <div
-          className={`relative bg-white shadow-lg rounded-2xl p-6 w-full max-w-xl z-10 transform transition-transform duration-300 ${
-            showHistory ? "scale-105" : "scale-100"
-          }`}
-        >
-          {/* Main form */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Material
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Spool Price (₱)
-                </label>
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-            </div>
+  useEffect(() => {
+    if (sessionId) {
+      console.log("CardWithHistory received sessionId:", sessionId);
+      fetchHistory(sessionId);
+    }
+  }, [sessionId]);
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Weight (g)
-                </label>
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Print Time (hrs:min)
-                </label>
-                <input
-                  type="text"
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Electricity Cost (₱1.68 default)
-                </label>
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                />
-              </div>
+  // ✅ Helper: request a new session
+  const refreshSession = async () => {
+    const res = await axios.post("http://localhost:5000/api/session");
+    localStorage.setItem("sessionId", res.data.sessionId);
+    setSessionId(res.data.sessionId);
+    return res.data.sessionId;
+  };
+
+  // ✅ Fetch history with session auto-refresh
+  const fetchHistory = async (id) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/calculations/${id}`);
+      setHistory(res.data);
+    } catch (err) {
+      if (err.response?.data?.error === "Session expired") {
+        const newSession = await refreshSession();
+        fetchHistory(newSession); // retry with new session
+      } else {
+        console.error("Error fetching history:", err.message);
+      }
+    }
+  };
+
+  // ✅ Save calculation with session auto-refresh
+  const saveCalculation = async () => {
+    if (!sessionId) return;
+
+    const payload = {
+      sessionId,
+      material,
+      product,
+      pricePerSpool: Number(pricePerSpool),
+      weightGrams: Number(weightGrams),
+      printHours,
+      printMinutes,
+      electricityCost: Number(electricityCost),
+      markupPercent: Number(markup),
+    };
+
+    try {
+      const res = await axios.post("http://localhost:5000/api/calculations", payload);
+      setHistory((prev) => [res.data, ...prev]);
+    } catch (err) {
+      if (err.response?.data?.error === "Session expired") {
+        const newSession = await refreshSession();
+        payload.sessionId = newSession;
+        saveCalculation(); // retry with new session
+      } else {
+        console.error("Error saving calculation:", err.message);
+      }
+    }
+  };
+
+  return (
+    <div className="relative w-full max-w-lg mx-auto p-4 mt-20">
+      {/* Main Card */}
+      <div className="bg-white shadow-lg rounded-2xl p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left column */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Material
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded-md"
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Product
+              </label>
+              <input
+                type="text"
+                className="w-full p-2 border rounded-md"
+                value={product}
+                onChange={(e) => setProduct(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Spool Price (₱)
+              </label>
+              <input
+                type="number"
+                className="w-full p-2 border rounded-md"
+                value={pricePerSpool}
+                onChange={(e) => setPricePerSpool(e.target.value)}
+              />
             </div>
           </div>
-           <div className="mt-6">
+
+          {/* Right column */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Product Weight (g)
+              </label>
+              <input
+                type="number"
+                className="w-full p-2 border rounded-md"
+                value={weightGrams}
+                onChange={(e) => setWeightGrams(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Print Time
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="number"
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Hours"
+                  value={printHours}
+                  onChange={(e) => setPrintHours(Number(e.target.value))}
+                />
+                <input
+                  type="number"
+                  className="w-full p-2 border rounded-md"
+                  placeholder="Minutes"
+                  value={printMinutes}
+                  onChange={(e) => setPrintMinutes(Number(e.target.value))}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {printHours} hour{printHours !== 1 ? "s" : ""} {printMinutes} minute
+                {printMinutes !== 1 ? "s" : ""}
+              </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Electricity Cost (₱1.68 default)
+              </label>
+              <input
+                type="number"
+                className="w-full p-2 border rounded-md"
+                value={electricityCost}
+                onChange={(e) => setElectricityCost(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Markup */}
+        <div className="mt-6">
           <label className="block text-gray-700 font-medium mb-2">
             Markup: {markup}%
           </label>
           <input
             type="range"
             min="0"
-            max="100"
+            max="1000"
             value={markup}
             onChange={(e) => setMarkup(e.target.value)}
             className="w-full accent-[#48A6A7]"
@@ -98,38 +195,48 @@ function Form() {
           Total Price: ₱{total}
         </div>
 
-          {/* Toggle button */}
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className={`absolute top-4 -right-5 px-3 py-2 rounded shadow-md transition transform 
-              ${showHistory 
-                ? "bg-[#48A6A7] hover:bg-[#006A71] scale-110 text-white"   // enlarged + dark
-                : "bg-[#006A71] hover:bg-[#48A6A7] text-white" // default + hoverbg-[#006A71] scale-110 text-white
-              }`}
-          >
-            {showHistory ? "<" : ">"}
-          </button>
-        </div>
-
-        {/* History card (behind) */}
-        <div
-          className={`absolute top-0 right-0 h-full w-64 bg-white shadow-lg rounded-l-2xl p-4 pl-8 transform transition-transform duration-300 ease-in-out z-0 ${
-            showHistory ? "translate-x-0" : "translate-x-full"
-          }`}
+        {/* Save button */}
+        <button
+          onClick={saveCalculation}
+          className="mt-4 w-full bg-[#48A6A7] hover:bg-[#006A71] text-white py-2 rounded-md shadow-md transition"
         >
-          <h3 className="text-lg font-semibold text-[#006A71] mb-2">History</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li>Coaster – ₱250</li>
-            <li>Phone stand – ₱180</li>
-            <li>Keychain – ₱75</li>
-          </ul>
-        </div>
-        
+          Save Calculation
+        </button>
       </div>
-      
 
+      {/* Toggle history button */}
+      <div className="flex justify-center -mt-3 relative z-10">
+        <button
+          onClick={() => setShowHistory(!showHistory)}
+          className={`px-6 py-2 rounded-full shadow-md transition
+            ${
+              showHistory
+                ? "bg-[#48A6A7] hover:bg-[#006A71] text-white"
+                : "bg-[#006A71] hover:bg-[#48A6A7] text-white"
+            }`}
+        >
+          {showHistory ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </button>
+      </div>
+
+      {/* History Card */}
+      <div
+        className={`mt-4 w-full bg-white shadow-lg rounded-2xl p-4 transform transition-all duration-300 ease-in-out overflow-hidden
+          ${showHistory ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+      >
+        <h3 className="text-lg font-semibold text-[#006A71] mb-2">History</h3>
+        <ul className="space-y-2 text-sm text-gray-600">
+          {history.length > 0 ? (
+            history.map((h) => (
+              <li key={h._id}>
+                {h.product} – ₱{h.totalCost.toFixed(2)}
+              </li>
+            ))
+          ) : (
+            <li className="text-gray-400">No history yet.</li>
+          )}
+        </ul>
+      </div>
     </div>
   );
 }
-
-export default Form;
