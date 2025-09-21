@@ -186,7 +186,8 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
             max="1000"
             value={markup}
             onChange={(e) => setMarkup(e.target.value)}
-            className="w-full accent-[#48A6A7]"
+             style={{ accentColor: "var(--color-secondary)" }}
+            className="w-full "
           />
         </div>
 

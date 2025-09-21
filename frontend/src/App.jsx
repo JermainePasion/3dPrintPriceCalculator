@@ -4,6 +4,7 @@ import { ReactTyped } from 'react-typed'
 import './index.css'
 import axios from 'axios'
 import CardWithHistory from './components/Form'
+import ChatBot from './components/Chatbot'
 
 function App() {
   const [sessionId, setSessionId] = useState(null)
@@ -60,6 +61,8 @@ useEffect(() => {
       
       {/* ✅ Pass sessionId into Form */}
       <CardWithHistory sessionId={sessionId} />
+
+      <ChatBot sessionId={sessionId} />
     </>
   )
 }

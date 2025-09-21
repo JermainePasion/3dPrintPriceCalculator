@@ -31,41 +31,35 @@ who use 3D printing to sell products on Shopee/Lazada/Facebook Marketplace.
 - According to Makerlab Electronics and Meralco (as of April 4, 2025), for a Bambu Lab A1 Combo, an hour of printing costs around ₱1.43 to ₱1.68 per hour. 
 Use that as a reference if asked about electricity costs.
 - If question is unrelated to 3D printing business, politely redirect.
+- you are limited to saving up to 10 recent calculations
 `
 
   // Only include last 3 calculations
-  if (calculations.length > 0) {
-    context += "\nRecent calculations:\n"
+   if (calculations.length > 0) {
+    context += "\nRecent calculations:\n";
     calculations.slice(-10).forEach((c, i) => {
-      const timeStr = `${c.printHours || 0}h ${c.printMinutes || 0}m`
-      context += `#${i + 1}:
-    - Product: ${c.product}
-    - Material: ${c.material}
-    - Weight: ${c.weightGrams}g
-    - Filament price: ₱${c.pricePerSpool} per spool (1kg)
-    - Print time: ${timeStr}
-    - Electricity cost: ₱${c.electricityCost}
-    - Markup: ${c.markupPercent}%
-    - Final total cost: ₱${c.totalCost}\n\n`
-      })
+      const timeStr = `${c.printHours || 0}h ${c.printMinutes || 0}m`;
+      context += `| #${i + 1} | ${c.product} | ${c.material} | ${c.weightGrams}g | ₱${c.pricePerSpool}/kg | ${timeStr} | ₱${c.electricityCost} | ${c.markupPercent}% | ₱${c.totalCost} |\n`;
+    });
+    context += "\nColumns: # | Product | Material | Weight | Filament Price | Print Time | Electricity | Markup | Total Cost\n";
   }
 
   // Only include last 5 messages
   if (chats.length > 0) {
-    const recentChats = chats.slice(-5)
-    context += "\nRecent chat history:\n"
-    recentChats.forEach((chat) => {
-      context += `${chat.role.toUpperCase()}: ${chat.message}\n`
-    })
+    const recentChats = chats.slice(-5);
+    context += "\nRecent chat history:\n";
+    recentChats.forEach(chat => {
+      context += `${chat.role === "assistant" ? "PrintMate" : "User"}: ${chat.message}\n`;
+    });
   }
 
   context += `\nUser asks: ${message}\n`
 
   try {
-    const result = await flashLiteModel.generateContent(context)
-    return result.response.text()
+    const result = await flashLiteModel.generateContent(context);
+    return result.response.text(); // Markdown formatted
   } catch (err) {
-    console.error("❌ Gemini Flash-Lite API error:", err.status, err.statusText)
-    throw err
+    console.error("❌ Gemini Flash-Lite API error:", err);
+    throw err;
   }
 }
