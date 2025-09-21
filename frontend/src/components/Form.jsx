@@ -14,6 +14,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
   const [printMinutes, setPrintMinutes] = useState(0);
   const [electricityCost, setElectricityCost] = useState(1.68);
 
+
   const totalPrintTimeHours = printHours + printMinutes / 60;
   const filamentCostPerGram = pricePerSpool / 1000;
   const filamentCost = filamentCostPerGram * weightGrams;
@@ -81,6 +82,19 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
     }
   };
 
+  function formatTime(hours, minutes) {
+  const h = Number(hours) || 0;
+  const m = Number(minutes) || 0;
+
+  const hLabel = h === 1 ? "hour" : "hours";
+  const mLabel = m === 1 ? "minute" : "minutes";
+
+  if (h && m) return `${h} ${hLabel} ${m} ${mLabel}`;
+  if (h) return `${h} ${hLabel}`;
+  if (m) return `${m} ${mLabel}`;
+  return "0 minutes";
+}
+
   return (
     <div className="relative w-full max-w-lg mx-auto p-4 mt-20">
       {/* Main Card */}
@@ -100,9 +114,26 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Product
-              </label>
+              <div className="flex items-center gap-1 mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Product
+                </label>
+
+                <div className="relative group">
+                  {/* Circle with ? */}
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#48A6A7] text-white text-xs font-bold cursor-pointer hover:bg-[#006A71] transition">
+                    ?
+                  </span>
+
+                  {/* Tooltip (above the ? icon) */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2 text-xs text-white bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    Put the name of your product (e.g. keycaps, figurines)
+
+                    {/* Tooltip Arrow */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
+                  </div>
+                </div>
+              </div>
               <input
                 type="text"
                 className="w-full p-2 border rounded-md"
@@ -136,31 +167,32 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
                 onChange={(e) => setWeightGrams(e.target.value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Print Time
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                  placeholder="Hours"
-                  value={printHours}
-                  onChange={(e) => setPrintHours(Number(e.target.value))}
-                />
-                <input
-                  type="number"
-                  className="w-full p-2 border rounded-md"
-                  placeholder="Minutes"
-                  value={printMinutes}
-                  onChange={(e) => setPrintMinutes(Number(e.target.value))}
-                />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Print Time
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Hours"
+                    value={printHours}
+                    onChange={(e) => setPrintHours(e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Minutes"
+                    value={printMinutes}
+                    onChange={(e) => setPrintMinutes(e.target.value)}
+                  />
+                </div>
+
+                {/* 👇 Live preview */}
+                <p className="mt-2 text-sm text-gray-600">
+                  {formatTime(printHours, printMinutes)}
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {printHours} hour{printHours !== 1 ? "s" : ""} {printMinutes} minute
-                {printMinutes !== 1 ? "s" : ""}
-              </p>
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Electricity Cost (₱1.68 default)

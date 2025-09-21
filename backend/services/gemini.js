@@ -49,7 +49,7 @@ Use that as a reference if asked about electricity costs.
     const recentChats = chats.slice(-5);
     context += "\nRecent chat history:\n";
     recentChats.forEach(chat => {
-      context += `${chat.role === "assistant" ? "PrintMate" : "User"}: ${chat.message}\n`;
+      context += `${chat.role === "assistant" ? "Chatbot" : "User"}: ${chat.message}\n`;
     });
   }
 

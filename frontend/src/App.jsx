@@ -59,7 +59,6 @@ useEffect(() => {
         </h1>
       </div>
       
-      {/* ✅ Pass sessionId into Form */}
       <CardWithHistory sessionId={sessionId} />
 
       <ChatBot sessionId={sessionId} />
