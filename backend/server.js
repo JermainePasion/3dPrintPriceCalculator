@@ -78,10 +78,33 @@ app.post("/api/calculations", async (req, res) => {
       return res.status(403).json({ error: "Session expired. Please refresh." });
     }
 
-    const calc = new Calculation({ sessionId, ...calcData });
+    // --- Explicit total cost calculation (so it's always correct) ---
+    const printHours = Number(calcData.printHours) || 0;
+    const printMinutes = Number(calcData.printMinutes) || 0;
+
+    const totalPrintTimeHours = printHours + printMinutes / 60;
+
+    const filamentCostPerGram = calcData.pricePerSpool / 1000;
+    const filamentCost = filamentCostPerGram * calcData.weightGrams;
+
+    const electricityTotal = calcData.electricityCost * totalPrintTimeHours;
+
+    const baseCost = filamentCost + electricityTotal;
+
+    const totalCost = baseCost * (1 + calcData.markupPercent / 100);
+
+    // Save with computed totalCost
+    const calc = new Calculation({
+      sessionId,
+      ...calcData,
+      totalCost,
+    });
+
     await calc.save();
 
+    // ✅ Return the saved calculation with totalCost (markup included)
     res.status(201).json(calc);
+
   } catch (err) {
     console.error("Error saving calculation:", err.message);
     res.status(400).json({ error: err.message });

@@ -15,12 +15,19 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
   const [electricityCost, setElectricityCost] = useState(1.68);
 
 
-  const totalPrintTimeHours = printHours + printMinutes / 60;
-  const filamentCostPerGram = pricePerSpool / 1000;
-  const filamentCost = filamentCostPerGram * weightGrams;
-  const electricityTotal = electricityCost * totalPrintTimeHours;
+  const h = Number(printHours) || 0;
+  const m = Number(printMinutes) || 0;
+  const spool = Number(pricePerSpool) || 0;
+  const grams = Number(weightGrams) || 0;
+  const elec = Number(electricityCost) || 0;
+  const mPercent = Number(markup) || 0;
+
+  const totalPrintTimeHours = h + m / 60;
+  const filamentCostPerGram = spool / 1000;
+  const filamentCost = filamentCostPerGram * grams;
+  const electricityTotal = elec * totalPrintTimeHours;
   const baseCost = filamentCost + electricityTotal;
-  const total = (baseCost * (1 + markup / 100)).toFixed(2);
+  const total = (baseCost * (1 + mPercent / 100)).toFixed(2);
 
   useEffect(() => {
     if (sessionId) {
@@ -261,9 +268,9 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
         <ul className="space-y-2 text-sm text-gray-600">
           {history.length > 0 ? (
             history.map((h) => (
-              <li key={h._id}>
-                {h.product} – ₱{h.totalCost.toFixed(2)}
-              </li>
+            <li key={h._id}>
+              {h.product} – ₱{h.totalCost?.toFixed(2)}
+            </li>
             ))
           ) : (
             <li className="text-gray-400">No history yet.</li>
