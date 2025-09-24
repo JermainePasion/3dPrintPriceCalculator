@@ -3,10 +3,10 @@ import express from "express"
 import mongoose from "mongoose"
 import cors from "cors"
 import dotenv from "dotenv"
-import ChatBot from "../models/ChatBot.js"
-import Calculation from "../models/Calculation.js"
-import { askGemini } from "../services/gemini.js"
-import Session from "../models/Session.js"
+import ChatBot from "./models/ChatBot.js"
+import Calculation from "./models/Calculation.js"
+import { askGemini } from "./services/gemini.js"
+import Session from "./models/Session.js"
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
 import path from "path";
