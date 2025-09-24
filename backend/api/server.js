@@ -3,10 +3,13 @@ import express from "express"
 import mongoose from "mongoose"
 import cors from "cors"
 import dotenv from "dotenv"
-import ChatBot from "./models/ChatBot.js"
-import Calculation from "./models/Calculation.js"
-import { askGemini } from "./services/gemini.js"
-import Session from "./models/Session.js"
+import ChatBot from "../models/ChatBot.js"
+import Calculation from "../models/Calculation.js"
+import { askGemini } from "../services/gemini.js"
+import Session from "../models/Session.js"
+import ExcelJS from "exceljs";
+import PDFDocument from "pdfkit";
+import path from "path";
 
 dotenv.config()
 
@@ -153,6 +156,82 @@ app.post("/api/chat/ask", async (req, res) => {
   }
 })
 
+// Generate Excel
+app.get("/api/export/excel/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const calculations = await Calculation.find({ sessionId });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Calculations");
+
+    // Headers
+    worksheet.columns = [
+      { header: "Product", key: "product", width: 20 },
+      { header: "Material", key: "material", width: 15 },
+      { header: "Weight (g)", key: "weightGrams", width: 12 },
+      { header: "Print Time", key: "printTime", width: 15 },
+      { header: "Electricity (₱/hr)", key: "electricityCost", width: 18 },
+      { header: "Markup (%)", key: "markupPercent", width: 12 },
+      { header: "Total Cost (₱)", key: "totalCost", width: 18 },
+    ];
+
+    // Rows
+    calculations.forEach(calc => {
+      worksheet.addRow({
+        product: calc.product,
+        material: calc.material,
+        weightGrams: calc.weightGrams,
+        printTime: `${calc.printHours}h ${calc.printMinutes}m`,
+        electricityCost: calc.electricityCost,
+        markupPercent: calc.markupPercent,
+        totalCost: calc.totalCost.toFixed(2),
+      });
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=calculations.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    res.status(500).json({ error: "Failed to export Excel" });
+  }
+});
+
+// Generate PDF
+app.get("/api/export/pdf/:sessionId", async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const calculations = await Calculation.find({ sessionId });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "attachment; filename=calculations.pdf");
+
+    const doc = new PDFDocument();
+    doc.pipe(res);
+
+    doc.fontSize(18).text("3D Printing Cost Calculations", { align: "center" });
+    doc.moveDown();
+
+    calculations.forEach(calc => {
+      doc.fontSize(12).text(
+        `Product: ${calc.product}\nMaterial: ${calc.material}\nWeight: ${calc.weightGrams}g\nPrint Time: ${calc.printHours}h ${calc.printMinutes}m\nElectricity: ₱${calc.electricityCost}/hr\nMarkup: ${calc.markupPercent}%\nTotal Cost: ₱${calc.totalCost.toFixed(2)}\n---`
+      );
+      doc.moveDown();
+    });
+
+    doc.end();
+  } catch (err) {
+    res.status(500).json({ error: "Failed to export PDF" });
+  }
+});
 
 // Start server
 const PORT = process.env.PORT || 5000
