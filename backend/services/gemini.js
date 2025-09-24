@@ -34,7 +34,6 @@ who use 3D printing to sell products on Shopee/Lazada/Facebook Marketplace.
 - Be practical, like a small business owner friend giving advice.
 `
 
-
   if (calculations.length > 0) {
     context += "\nRecent calculations:\n"
     calculations.slice(-10).forEach((c, i) => {
