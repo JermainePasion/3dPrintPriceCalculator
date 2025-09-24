@@ -31,12 +31,11 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
 
   useEffect(() => {
     if (sessionId) {
-      console.log("CardWithHistory received sessionId:", sessionId);
       fetchHistory(sessionId);
     }
   }, [sessionId]);
 
-  // ✅ Helper: request a new session
+
   const refreshSession = async () => {
     const res = await axios.post("http://localhost:5000/api/session");
     localStorage.setItem("sessionId", res.data.sessionId);
@@ -44,7 +43,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
     return res.data.sessionId;
   };
 
-  // ✅ Fetch history with session auto-refresh
+
   const fetchHistory = async (id) => {
     try {
       const res = await axios.get(`http://localhost:5000/api/calculations/${id}`);
@@ -59,7 +58,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
     }
   };
 
-  // ✅ Save calculation with session auto-refresh
+  // Save calculation with session auto-refresh
   const saveCalculation = async () => {
     if (!sessionId) return;
 
@@ -104,7 +103,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
 
   return (
     <div className="relative w-full max-w-lg mx-auto p-4 mt-20">
-      {/* Main Card */}
+
       <div className="bg-white shadow-lg rounded-2xl p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left column */}
@@ -127,7 +126,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
                 </label>
 
                 <div className="relative group">
-                  {/* Circle with ? */}
+
                   <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[#48A6A7] text-white text-xs font-bold cursor-pointer hover:bg-[#006A71] transition">
                     ?
                   </span>
@@ -136,7 +135,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2 text-xs text-white bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                     Put the name of your product (e.g. keycaps, figurines)
 
-                    {/* Tooltip Arrow */}
+
                     <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-800 rotate-45"></div>
                   </div>
                 </div>
@@ -214,7 +213,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
           </div>
         </div>
 
-        {/* Markup */}
+
         <div className="mt-6">
           <label className="block text-gray-700 font-medium mb-2">
             Markup: {markup}%
@@ -230,18 +229,34 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
           />
         </div>
 
-        {/* Total price */}
+
         <div className="mt-4 text-xl font-semibold text-[#006A71]">
           Total Price: ₱{total}
         </div>
 
-        {/* Save button */}
+
         <button
           onClick={saveCalculation}
           className="mt-4 w-full bg-[#48A6A7] hover:bg-[#006A71] text-white py-2 rounded-md shadow-md transition"
         >
           Save Calculation
         </button>
+        <div className="flex items-center justify-center mt-3">
+
+                <button
+          onClick={() => window.open(`http://localhost:5000/api/export/excel/${sessionId}`, "_blank")}
+          className="m-2 bg-[#006A71] text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition"
+        >
+          Download Excel
+        </button>
+
+        <button
+          onClick={() => window.open(`http://localhost:5000/api/export/pdf/${sessionId}`, "_blank")}
+          className="bg-[#006A71] text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition"
+        >
+          Download PDF
+        </button>
+        </div>
       </div>
 
       {/* Toggle history button */}
@@ -257,6 +272,8 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
         >
           {showHistory ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
+
+        
       </div>
 
       {/* History Card */}
@@ -277,6 +294,10 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
           )}
         </ul>
       </div>
+      <div className="mt-6 flex gap-2">
+
+      </div>
+
     </div>
   );
 }

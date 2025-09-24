@@ -5,6 +5,7 @@ import './index.css'
 import axios from 'axios'
 import CardWithHistory from './components/Form'
 import ChatBot from './components/Chatbot'
+import DonateCard from './components/DonateCard'
 
 function App() {
   const [sessionId, setSessionId] = useState(null)
@@ -21,7 +22,7 @@ useEffect(() => {
         storedSession = res.data.sessionId;
         localStorage.setItem("sessionId", storedSession);
       }
-      console.log("Session ID:", storedSession); // ✅ Move it here
+      console.log("Session ID:", storedSession);
       setSessionId(storedSession);
     } catch (err) {
       console.error("❌ Failed to initialize session:", err.message);
@@ -60,8 +61,8 @@ useEffect(() => {
       </div>
       
       <CardWithHistory sessionId={sessionId} />
-
       <ChatBot sessionId={sessionId} />
+      <DonateCard/>
     </>
   )
 }
