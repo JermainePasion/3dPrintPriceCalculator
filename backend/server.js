@@ -9,7 +9,7 @@ import { askGemini } from "./services/gemini.js"
 import Session from "./models/Session.js"
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
-import path from "path";
+import cors from "cors";
 
 dotenv.config()
 
@@ -239,4 +239,11 @@ if (process.env.NODE_ENV !== "production") {
   app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
 }
 
+app.use(cors({
+  origin: "https://3d-printing-price-calculator-vert.vercel.app", // your frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
+app.use(express.json())
 export default app;
