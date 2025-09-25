@@ -18,7 +18,7 @@ useEffect(() => {
     try {
       if (!storedSession) {
         // 🚀 Request a new session
-        const res = await axios.post("http://localhost:5000/api/session");
+        const res = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/session`);
         storedSession = res.data.sessionId;
         localStorage.setItem("sessionId", storedSession);
       }

@@ -24,7 +24,7 @@ const sendMessage = async () => {
   setLoading(true);
 
   try {
-    const res = await axios.post("http://localhost:5000/api/chat/ask", {
+    const res = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/chat/ask`, {
       sessionId,
       message: input,
     });

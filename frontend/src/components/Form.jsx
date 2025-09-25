@@ -37,7 +37,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
 
 
   const refreshSession = async () => {
-    const res = await axios.post("http://localhost:5000/api/session");
+    const res = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/session`);
     localStorage.setItem("sessionId", res.data.sessionId);
     setSessionId(res.data.sessionId);
     return res.data.sessionId;
@@ -46,7 +46,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
 
   const fetchHistory = async (id) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/calculations/${id}`);
+      const res = await axios.get(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/calculations/${id}`);
       setHistory(res.data);
     } catch (err) {
       if (err.response?.data?.error === "Session expired") {
@@ -75,7 +75,7 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
     };
 
     try {
-      const res = await axios.post("http://localhost:5000/api/calculations", payload);
+      const res = await axios.post(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/calculations`, payload);
       setHistory((prev) => [res.data, ...prev]);
     } catch (err) {
       if (err.response?.data?.error === "Session expired") {
@@ -244,14 +244,14 @@ export default function CardWithHistory({ sessionId, setSessionId }) {
         <div className="flex items-center justify-center mt-3">
 
                 <button
-          onClick={() => window.open(`http://localhost:5000/api/export/excel/${sessionId}`, "_blank")}
+          onClick={() => window.open(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/export/excel/${sessionId}`, "_blank")}
           className="m-2 bg-[#006A71] text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition"
         >
           Download Excel
         </button>
 
         <button
-          onClick={() => window.open(`http://localhost:5000/api/export/pdf/${sessionId}`, "_blank")}
+          onClick={() => window.open(`${import.meta.env.VITE_REACT_APP_BACKEND_BASEURL}/api/export/pdf/${sessionId}`, "_blank")}
           className="bg-[#006A71] text-white px-4 py-2 rounded-lg shadow hover:bg-red-600 transition"
         >
           Download PDF
