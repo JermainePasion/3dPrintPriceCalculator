@@ -38,8 +38,9 @@ app.post("/api/session", async (req, res) => {
   try {
     const session = new Session(); // UUID _id generated automatically
     await session.save();
-    res.json({ sessionId: session._id }); // send string to frontend
+    res.json({ sessionId: session._id });
   } catch (err) {
+    console.error("❌ /api/session error:", err); // <-- log the error
     res.status(500).json({ error: "Failed to create session" });
   }
 });
