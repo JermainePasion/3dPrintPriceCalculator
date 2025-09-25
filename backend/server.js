@@ -9,7 +9,6 @@ import { askGemini } from "./services/gemini.js"
 import Session from "./models/Session.js"
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
-import cors from "cors";
 
 dotenv.config()
 
