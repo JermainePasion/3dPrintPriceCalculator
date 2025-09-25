@@ -13,7 +13,11 @@ import PDFDocument from "pdfkit";
 dotenv.config()
 
 const app = express()
-app.use(cors())
+app.use(cors({
+  origin: "https://3d-printing-price-calculator-vert.vercel.app", // your frontend URL
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json())
 
 // MongoDB connection
@@ -231,18 +235,4 @@ app.get("/api/export/pdf/:sessionId", async (req, res) => {
     res.status(500).json({ error: "Failed to export PDF" });
   }
 });
-
-// Start server
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
-}
-
-app.use(cors({
-  origin: "https://3d-printing-price-calculator-vert.vercel.app", // your frontend URL
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}));
-
-app.use(express.json())
 export default app;
